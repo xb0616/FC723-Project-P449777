@@ -1,3 +1,5 @@
+from database import insert_booking, delete_booking
+from utils import generate_booking_reference
 from airplane import Airplane
 import sys
 
@@ -47,20 +49,33 @@ class BookingSystem:
         else:
             print("Invalid seat number.")
 
+
     def book_seat(self):
         # Book a seat if available
         seat_id = input("Enter seat number to book: ").upper()
         seat = self.airplane.get_seat(seat_id)
-        if seat and seat.book():
-            print(f"Seat {seat_id} has been successfully booked.")
+        if seat and seat.is_available():
+            passport = input("Enter passport number: ")
+            fname = input("Enter first name: ")
+            lname = input("Enter last name: ")
+            booking_ref = generate_booking_reference()
+            
+            if seat.book(booking_ref):
+                insert_booking(booking_ref, passport, fname, lname, seat_id)
+                print(f"Seat {seat_id} booked with reference {booking_ref}")
+            else:
+                print(f"Cannot book seat {seat_id}.")
+                
         else:
-            print(f"Cannot book seat {seat_id}. It may already be reserved or unavailable.")
+            print(f"Seat {seat_id} is not available.")
+    
 
     def free_seat(self):
         # Free a seat if it is currently reserved
         seat_id = input("Enter seat number to free: ").upper()
         seat = self.airplane.get_seat(seat_id)
         if seat and seat.free():
+            delete_booking(seat_id)
             print(f"Seat {seat_id} has been successfully freed.")
         else:
             print(f"Cannot free seat {seat_id}. It may not be reserved or is invalid.")
